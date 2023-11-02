@@ -27,6 +27,17 @@ export default class Order {
     return this._items;
   }
 
+  changeItems(items: OrderItem[]): void {
+    this._items = items;
+    this._total = this.total();
+    this.validate();
+  }
+
+  changeCustomerId(customerId: string): void {
+    this._customerId = customerId;
+    this.validate();
+  }
+
   validate(): boolean {
     if (!this._id) {
       throw new Error("Id is required");
