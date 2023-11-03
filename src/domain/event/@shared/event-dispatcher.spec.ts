@@ -1,6 +1,13 @@
-import SendEmailWhenProductIsCreatedHandler from "../product/handler/send-email-when-product-is-created.handler";
+import Address from "../../entity/address";
+import { Customer } from "../../entity/customer";
+import CustomerAddressUpdatedEvent from "../customer/customer-address-updated.event";
+import CustomerCreated from "../customer/customer-created.event";
+import EnviaConsoleLog1Handler from "../customer/handler/envia-console-log-1.handler";
+import EnviaConsoleLog2Handler from "../customer/handler/envia-console-log-2.handler";
+import SendEmailWhenProductIsCreatedHandler from "../customer/handler/envia-console-log";
 import ProductCreatedEvent from "../product/product-created.event";
 import EventDispatcher from "./event-dispatcher";
+import EnviaConsoleLogHandler from "../customer/handler/envia-console-log";
 
 describe("Domain events tests", () => {
 
@@ -58,6 +65,63 @@ describe("Domain events tests", () => {
     eventDispatcher.notify(productCreatedEvent);
 
     expect(spyEventHandler).toHaveBeenCalled();
+  });
+
+  it("should notify an event customer created", () => {
+    const eventDispatcher = new EventDispatcher();
+    
+    const enviaConsoleLog1Handler = new EnviaConsoleLog1Handler();
+    eventDispatcher.register("CustomerCreated", enviaConsoleLog1Handler);
+
+    expect(eventDispatcher.getEventHandlers["CustomerCreated"]).toBeDefined();
+    expect(eventDispatcher.getEventHandlers["CustomerCreated"].length).toBe(1);
+    expect(eventDispatcher.getEventHandlers["CustomerCreated"][0]).toMatchObject(enviaConsoleLog1Handler);
+
+    const enviaConsoleLog2Handler = new EnviaConsoleLog2Handler();
+    eventDispatcher.register("CustomerCreated", enviaConsoleLog2Handler);
+
+    expect(eventDispatcher.getEventHandlers["CustomerCreated"]).toBeDefined();
+    expect(eventDispatcher.getEventHandlers["CustomerCreated"].length).toBe(2);
+    expect(eventDispatcher.getEventHandlers["CustomerCreated"][0]).toMatchObject(enviaConsoleLog2Handler);
+
+    const spyEnviaConsoleLog1Handler = jest.spyOn(enviaConsoleLog1Handler, "handle");
+    const spyEnviaConsoleLog2Handler = jest.spyOn(enviaConsoleLog2Handler, "handle");
+
+    const customerCreated = new CustomerCreated({
+      customerId: "123",
+      customerName: "Customer 1",
+    });
+    eventDispatcher.notify(customerCreated);
+
+    expect(spyEnviaConsoleLog1Handler).toHaveBeenCalled();
+    expect(spyEnviaConsoleLog2Handler).toHaveBeenCalled();
+
+  });
+
+  it("should notify an event customer updated address", () => {
+    const eventDispatcher = new EventDispatcher();
+    const eventHandler = new EnviaConsoleLogHandler();
+    const spyEventHandler = jest.spyOn(eventHandler, "handle");
+    eventDispatcher.register("CustomerAddressUpdatedEvent", eventHandler);
+    
+    expect(eventDispatcher.getEventHandlers["CustomerAddressUpdatedEvent"]).toBeDefined();
+    expect(eventDispatcher.getEventHandlers["CustomerAddressUpdatedEvent"].length).toBe(1);
+    expect(eventDispatcher.getEventHandlers["CustomerAddressUpdatedEvent"][0]).toMatchObject(eventHandler);
+    
+    const customer = new Customer("123", "Customer 1");
+    const address = new Address("Street 1", 1, "Zipcode 1", "City 1");
+    customer.Address = address;
+    
+    const customerAddressUpdatedEvent = new CustomerAddressUpdatedEvent({
+      customerId: customer.id,
+      customerName: customer.name,
+      address: customer.Address
+    });
+
+    eventDispatcher.notify(customerAddressUpdatedEvent);
+
+    expect(spyEventHandler).toHaveBeenCalled();
+
   });
 
 });
