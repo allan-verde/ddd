@@ -4,8 +4,8 @@
   "description": "",
   "main": "main.ts",
   "scripts": {
-    "tsc": "tsc",
-    "test": "npm run tsc -- --noEmit && jest"
+    "tsc": "rm -rf build && tsc",
+    "test": "npm run tsc -- --noEmit && jest --detectOpenHandles --forceExit --verbose"
   },
   "keywords": [],
   "author": "",
